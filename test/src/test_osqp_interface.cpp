@@ -3,34 +3,34 @@
 #include <iostream>
 #include <eigen3/Eigen/SparseCore>
 
-  // TEST PROBLEM
-  //  ref: https://www.mathworks.com/help/optim/ug/quadprog.html
-  //
-  // 'P' matrix:
-  //   | 1  -1 |
-  //   | -1  2 |
-  //
-  // 'q' vector:
-  //   | -2 |
-  //   | -6 |
-  //
-  // 'l' vector:
-  //   | -1000 |
-  //   | -1000 |
-  //
-  // 'A' vector:
-  //   |  1  1 |
-  //   | -1  2 |
-  //   |  2  1 |
-  //
-  // 'u' vector:
-  //   | 2 |
-  //   | 2 |
-  //   | 3 |
-  //
-  // Solution: [0.6666..., 1.3333...]
+// TEST PROBLEM
+//  ref: https://www.mathworks.com/help/optim/ug/quadprog.html
+//
+// 'P' matrix:
+//   | 1  -1 |
+//   | -1  2 |
+//
+// 'q' vector:
+//   | -2 |
+//   | -6 |
+//
+// 'l' vector:
+//   | -1000 |
+//   | -1000 |
+//
+// 'A' vector:
+//   |  1  1 |
+//   | -1  2 |
+//   |  2  1 |
+//
+// 'u' vector:
+//   | 2 |
+//   | 2 |
+//   | 3 |
+//
+// Solution: [0.6666..., 1.3333...]
 
-class OSQPInterfaceTest : public::testing::Test
+class OSQPInterfaceTest : public ::testing::Test
 {
 public:
 };
@@ -47,11 +47,11 @@ TEST_F(OSQPInterfaceTest, initializeInterfaceWithoutData)
 TEST_F(OSQPInterfaceTest, initiazeInterfaceWithData)
 {
   // Test problem
-  Eigen::MatrixXd P(2,2);
+  Eigen::MatrixXd P(2, 2);
   P << 1, -1, -1, 2;
   std::vector<double> q{-2, -6};
   std::vector<double> l{-1000, -1000, -1000};
-  Eigen::MatrixXd A(3,2);
+  Eigen::MatrixXd A(3, 2);
   A << 1, 1, -1, 2, 2, 1;
   std::vector<double> u{2, 2, 3};
 
@@ -65,14 +65,14 @@ TEST_F(OSQPInterfaceTest, initiazeInterfaceWithData)
 TEST_F(OSQPInterfaceTest, optimizeInitializedProblem)
 {
   // Test problem
-  Eigen::MatrixXd P(2,2);
+  Eigen::MatrixXd P(2, 2);
   P << 1, -1, -1, 2;
   std::vector<double> q{-2, -6};
   std::vector<double> l{-1000, -1000, -1000};
-  Eigen::MatrixXd A(3,2);
+  Eigen::MatrixXd A(3, 2);
   A << 1, 1, -1, 2, 2, 1;
   std::vector<double> u{2, 2, 3};
-  
+
   // Initialize interface
   osqp::OSQPInterface osqp_interface = osqp::OSQPInterface(P, A, q, l, u, 1e-6);
 
@@ -91,11 +91,11 @@ TEST_F(OSQPInterfaceTest, optimizeInitializedProblem)
 TEST_F(OSQPInterfaceTest, optimizeUninitializedProblem)
 {
   // Test problem
-  Eigen::MatrixXd P(2,2);
+  Eigen::MatrixXd P(2, 2);
   P << 1, -1, -1, 2;
   std::vector<double> q{-2, -6};
   std::vector<double> l{-1000, -1000, -1000};
-  Eigen::MatrixXd A(3,2);
+  Eigen::MatrixXd A(3, 2);
   A << 1, 1, -1, 2, 2, 1;
   std::vector<double> u{2, 2, 3};
 
@@ -117,11 +117,11 @@ TEST_F(OSQPInterfaceTest, optimizeUninitializedProblem)
 TEST_F(OSQPInterfaceTest, optimizeAfterUpdates)
 {
   // Test problem
-  Eigen::MatrixXd P(2,2);
+  Eigen::MatrixXd P(2, 2);
   P << 1, -1, -1, 2;
   std::vector<double> q{-2, -6};
   std::vector<double> l{-1000, -1000, -1000};
-  Eigen::MatrixXd A(3,2);
+  Eigen::MatrixXd A(3, 2);
   A << 1, 1, -1, 2, 2, 1;
   std::vector<double> u{2, 2, 3};
 
@@ -149,7 +149,6 @@ TEST_F(OSQPInterfaceTest, optimizeAfterUpdates)
   EXPECT_NEAR(x_0, 0.6667, 1e-4);
   EXPECT_NEAR(x_1, 1.3333, 1e-4);
 }
-
 
 int main(int argc, char **argv)
 {

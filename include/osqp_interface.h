@@ -22,7 +22,7 @@ struct CSC_Matrix
   std::vector<c_int> col_idx;
 };
 
- /**
+/**
   * Implementation of a native C++ interface for the OSQP solver.
   * 
   * The interface takes in the problem formalation as Eigen matrices and vectors, converts these objects into C-style
@@ -54,7 +54,7 @@ struct CSC_Matrix
   *          osqp_interface.updateQ(q_new);
   *          osqp_interface.updateL(l_new);
   *          osqp_interface.updateU(u_new);
-  *          osqp_interface.optimize()
+  *          osqp_interface.optimize();
   *        }
   * 
   * Ref: https://osqp.org/docs/solver/index.html
@@ -63,13 +63,12 @@ class OSQPInterface
 {
 
 private:
-
   /*****************************
    * OSQP WORKSPACE STRUCTURES
    *****************************/
   OSQPWorkspace *work;
-  OSQPSettings  *settings;
-  OSQPData      *data;
+  OSQPSettings *settings;
+  OSQPData *data;
   // Number of parameters to optimize
   c_int param_n;
 
@@ -86,13 +85,13 @@ private:
   CSC_Matrix transformP(const Eigen::MatrixXd &P, int *nonzeros);
   CSC_Matrix transformA(const Eigen::MatrixXd &A);
   // Converts problem input vectors to dynamic arrays.
-  double* transformQ(const std::vector<double> &q);
-  double* transformL(const std::vector<double> &l);
-  double* transformU(const std::vector<double> &u);
+  double *transformQ(const std::vector<double> &q);
+  double *transformL(const std::vector<double> &l);
+  double *transformU(const std::vector<double> &u);
   // Converts an Eigen matrix into a CSC matrix struct.
   CSC_Matrix convEigenMatrixToCSCMatrix(const Eigen::MatrixXd A);
   // Converts an Eigen vector matrix into a dynamic array.
-  double* convEigenVecToDynFloatArray(const Eigen::MatrixXd x);
+  double *convEigenVecToDynFloatArray(const Eigen::MatrixXd x);
 
   // Exitflag
   c_int exitflag;
@@ -100,10 +99,8 @@ private:
   inline bool isEqual(double x, double y);
 
 public:
-
   // Returns a flag for asserting interface condition (Healthy condition: 0).
   c_int getExitFlag(void);
-
 
   /****************************
    * INITIALIZATION FUNCTIONS
@@ -137,7 +134,6 @@ public:
 
   // For freeing dynamic memory used by OSQP's data object.
   ~OSQPInterface();
-
 
   /****************
    * OPTIMIZATION
@@ -184,7 +180,6 @@ public:
                                                                 const std::vector<double> l,
                                                                 const std::vector<double> u);
 
-
   /**************************
    * DATA-RELATED FUNCTIONS
    **************************/
@@ -202,7 +197,7 @@ public:
                           const std::vector<double> &q,
                           const std::vector<double> &l,
                           const std::vector<double> &u);
-  
+
   // Updates problem parameters while keeping solution in memory.
   //
   // Args:
@@ -218,6 +213,6 @@ public:
   c_int updateU(const std::vector<double> &u_new);
 };
 
-}  // namespace osqp
+} // namespace osqp
 
-#endif  // OSQP_INTERFACE_H
+#endif // OSQP_INTERFACE_H

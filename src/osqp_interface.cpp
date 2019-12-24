@@ -4,34 +4,32 @@
 namespace osqp
 {
 
-
 OSQPInterface::OSQPInterface(const c_float eps_abs)
 {
   /************************
    * INITIALIZE WORKSPACE
    ************************/
   settings = (OSQPSettings *)c_malloc(sizeof(OSQPSettings));
-  data     = (OSQPData *)c_malloc(sizeof(OSQPData));
+  data = (OSQPData *)c_malloc(sizeof(OSQPData));
 
   /*******************
    * SOLVER SETTINGS
    *******************/
-  if (settings) {
-      osqp_set_default_settings(settings);
-      settings->alpha = 1.0;
-      settings->eps_abs = eps_abs;
+  if (settings)
+  {
+    osqp_set_default_settings(settings);
+    settings->alpha = 1.0;
+    settings->eps_abs = eps_abs;
   }
   // Set flag for successful initialization
   exitflag = 0;
 }
-
 
 OSQPInterface::OSQPInterface(const Eigen::MatrixXd &P, const Eigen::MatrixXd &A, const std::vector<double> &q,
                              const std::vector<double> &l, const std::vector<double> &u, const c_float eps_abs) : OSQPInterface(eps_abs)
 {
   initializeProblem(P, A, q, l, u);
 }
-
 
 c_int OSQPInterface::initializeProblem(const Eigen::MatrixXd &P,
                                        const Eigen::MatrixXd &A,
@@ -51,9 +49,9 @@ c_int OSQPInterface::initializeProblem(const Eigen::MatrixXd &P,
   std::vector<double> q_tmp(q.begin(), q.end());
   std::vector<double> l_tmp(l.begin(), l.end());
   std::vector<double> u_tmp(u.begin(), u.end());
-  double* q_dyn = q_tmp.data();
-  double* l_dyn = l_tmp.data();
-  double* u_dyn = u_tmp.data();
+  double *q_dyn = q_tmp.data();
+  double *l_dyn = l_tmp.data();
+  double *u_dyn = u_tmp.data();
   //int *element_n;
   //CSC_Matrix P_csc = transformP(P, element_n);
   //CSC_Matrix A_csc = transformA(A);
@@ -72,7 +70,7 @@ c_int OSQPInterface::initializeProblem(const Eigen::MatrixXd &P,
   c_int P_elem_N = P_trap.nonZeros();
   c_int A_elem_N = A.nonZeros();
 
- /*****************
+  /*****************
    * POLULATE DATA
    *****************/
   data->m = constr_m;
@@ -82,13 +80,13 @@ c_int OSQPInterface::initializeProblem(const Eigen::MatrixXd &P,
   data->A = csc_matrix(data->m, data->n, A_elem_N, A_csc.elem_val.data(), A_csc.row_idx.data(), A_csc.col_idx.data());
   data->l = l_dyn;
   data->u = u_dyn;
-  
+
   // For deconstructor
   problem_in_memory = true;
 
   // Setup workspace
   exitflag = osqp_setup(&work, data, settings);
-  
+
   return exitflag;
 }
 
@@ -104,7 +102,8 @@ OSQPInterface::~OSQPInterface()
     }
     c_free(data);
   }
-  if (settings) c_free(settings);
+  if (settings)
+    c_free(settings);
 }
 
 c_int OSQPInterface::updateP(const Eigen::MatrixXd &P_new)
@@ -130,21 +129,21 @@ c_int OSQPInterface::updateA(const Eigen::MatrixXd &A_new)
 c_int OSQPInterface::updateQ(const std::vector<double> &q_new)
 {
   std::vector<double> q_tmp(q_new.begin(), q_new.end());
-  double* q_dyn = q_tmp.data();
+  double *q_dyn = q_tmp.data();
   osqp_update_lin_cost(work, q_dyn);
 }
 
 c_int OSQPInterface::updateL(const std::vector<double> &l_new)
 {
   std::vector<double> l_tmp(l_new.begin(), l_new.end());
-  double* l_dyn = l_tmp.data();
+  double *l_dyn = l_tmp.data();
   osqp_update_lower_bound(work, l_dyn);
 }
 
 c_int OSQPInterface::updateU(const std::vector<double> &u_new)
 {
   std::vector<double> u_tmp(u_new.begin(), u_new.end());
-  double* u_dyn = u_tmp.data();
+  double *u_dyn = u_tmp.data();
   osqp_update_upper_bound(work, u_dyn);
 }
 
@@ -156,8 +155,8 @@ std::tuple<std::vector<double>, std::vector<double>> OSQPInterface::solve()
   /********************
    * EXTRACT SOLUTION
    ********************/
-  double* sol_x = work->solution->x;
-  double* sol_y = work->solution->y;
+  double *sol_x = work->solution->x;
+  double *sol_y = work->solution->y;
   std::vector<double> sol_primal(sol_x, sol_x + static_cast<int>(param_n));
   std::vector<double> sol_lagrange_multiplier(sol_y, sol_y + static_cast<int>(param_n));
   // Result tuple
@@ -166,14 +165,12 @@ std::tuple<std::vector<double>, std::vector<double>> OSQPInterface::solve()
   return result;
 }
 
-
 std::tuple<std::vector<double>, std::vector<double>> OSQPInterface::optimize()
 {
   // Run the solver on the stored problem representation.
   std::tuple<std::vector<double>, std::vector<double>> result = solve();
   return result;
 }
-
 
 std::tuple<std::vector<double>, std::vector<double>> OSQPInterface::optimize(const Eigen::MatrixXd P,
                                                                              const Eigen::MatrixXd A,
@@ -186,7 +183,6 @@ std::tuple<std::vector<double>, std::vector<double>> OSQPInterface::optimize(con
   // Run the solver on the stored problem representation.
   std::tuple<std::vector<double>, std::vector<double>> result = solve();
   return result;
-
 }
 
 inline bool OSQPInterface::isEqual(double x, double y)
@@ -232,9 +228,9 @@ CSC_Matrix OSQPInterface::convEigenMatrixToCSCMatrix(const Eigen::MatrixXd A)
   B.makeCompressed();
 
   // Extract pointer arrays
-  double* val_ptr = B.valuePtr();
-  int* inn_ptr = B.innerIndexPtr();
-  int* out_ptr = B.outerIndexPtr();
+  double *val_ptr = B.valuePtr();
+  int *inn_ptr = B.innerIndexPtr();
+  int *out_ptr = B.outerIndexPtr();
 
   // Copy values of pointer arrays into vectors in CSC struct
   // Array lengths:
@@ -294,4 +290,4 @@ double* OSQPInterface::transformU(const std::vector<double> &u)
 }
 */
 
-} // End of namespace 'osqp'
+} // namespace osqp
