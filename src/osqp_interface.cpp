@@ -42,9 +42,41 @@ c_int OSQPInterface::initializeProblem(const Eigen::MatrixXd &P,
    *******************/
   // Transform 'P' into an 'upper trapesoidal matrix'
   Eigen::MatrixXd P_trap = P.triangularView<Eigen::Upper>();
-  // CSC matrices
-  CSC_Matrix P_csc = convEigenMatrixToCSCMatrix(P_trap);
-  CSC_Matrix A_csc = convEigenMatrixToCSCMatrix(A);
+  // Transform 'P' into a sparse matrix and extract data as dynamic arrays
+  Eigen::SparseMatrix<double> P_sparse = P_trap.sparseView();
+  double *P_val_ptr = P_sparse.valuePtr();
+  int *P_row_ptr_tmp = P_sparse.innerIndexPtr();
+  int *P_col_ptr_tmp = P_sparse.outerIndexPtr();
+  // Convert dynamic 'int' arrays to 'c_int' arrays (OSQP input type)
+  c_int P_elem_N = P_sparse.nonZeros();
+  c_int *P_row_ptr = new c_int[P_elem_N];
+  for (int i = 0; i < P_elem_N; i++)
+  {
+    P_row_ptr[i] = c_int(P_row_ptr_tmp[i]);
+  }
+  c_int *P_col_ptr = new c_int[P_elem_N];
+  for (int i = 0; i < P_elem_N; i++)
+  {
+    P_col_ptr[i] = c_int(P_col_ptr_tmp[i]);
+  }
+
+  // Transform 'A' into a sparse matrix and extract data as dynamic arrays
+  Eigen::SparseMatrix<double> A_sparse = A.sparseView();
+  double *A_val_ptr = A_sparse.valuePtr();
+  int *A_row_ptr_tmp = A_sparse.innerIndexPtr();
+  int *A_col_ptr_tmp = A_sparse.outerIndexPtr();
+  // Convert dynamic 'int' arrays to 'c_int' arrays (OSQP input type)
+  c_int A_elem_N = A_sparse.nonZeros();
+  c_int *A_row_ptr = new c_int[A_elem_N];
+  for (int i = 0; i < A_elem_N; i++)
+  {
+    A_row_ptr[i] = c_int(A_row_ptr_tmp[i]);
+  }
+  c_int *A_col_ptr = new c_int[A_elem_N];
+  for (int i = 0; i < A_elem_N; i++)
+  {
+    A_col_ptr[i] = c_int(A_col_ptr_tmp[i]);
+  }
   // Dynamic float arrays
   std::vector<double> q_tmp(q.begin(), q.end());
   std::vector<double> l_tmp(l.begin(), l.end());
@@ -52,12 +84,6 @@ c_int OSQPInterface::initializeProblem(const Eigen::MatrixXd &P,
   double *q_dyn = q_tmp.data();
   double *l_dyn = l_tmp.data();
   double *u_dyn = u_tmp.data();
-  //int *element_n;
-  //CSC_Matrix P_csc = transformP(P, element_n);
-  //CSC_Matrix A_csc = transformA(A);
-  //double* q_dyn = transformQ(q);
-  //double* l_dyn = transformL(l);
-  //double* u_dyn = transformU(u);
 
   /**********************
    * OBJECTIVE FUNCTION
@@ -66,18 +92,15 @@ c_int OSQPInterface::initializeProblem(const Eigen::MatrixXd &P,
   c_int constr_m = A.rows();
   // Number of parameters
   param_n = P.rows();
-  // Number of elements
-  c_int P_elem_N = P_trap.nonZeros();
-  c_int A_elem_N = A.nonZeros();
 
   /*****************
    * POLULATE DATA
    *****************/
   data->m = constr_m;
   data->n = param_n;
-  data->P = csc_matrix(data->n, data->n, P_elem_N, P_csc.elem_val.data(), P_csc.row_idx.data(), P_csc.col_idx.data());
+  data->P = csc_matrix(data->n, data->n, P_elem_N, P_val_ptr, P_row_ptr, P_col_ptr);
   data->q = q_dyn;
-  data->A = csc_matrix(data->m, data->n, A_elem_N, A_csc.elem_val.data(), A_csc.row_idx.data(), A_csc.col_idx.data());
+  data->A = csc_matrix(data->m, data->n, A_elem_N, A_val_ptr, A_row_ptr, A_col_ptr);
   data->l = l_dyn;
   data->u = u_dyn;
 
@@ -109,21 +132,24 @@ OSQPInterface::~OSQPInterface()
 c_int OSQPInterface::updateP(const Eigen::MatrixXd &P_new)
 {
   // Transform 'P' into an 'upper trapesoidal matrix'
-  Eigen::MatrixXd P_new_trap = P_new.triangularView<Eigen::Upper>();
-  // CSC matrices
-  CSC_Matrix P_csc = convEigenMatrixToCSCMatrix(P_new_trap);
-  // Number of elements
-  c_int P_elem_N = P_new_trap.nonZeros();
-  osqp_update_P(work, P_csc.elem_val.data(), OSQP_NULL, P_elem_N);
+  Eigen::MatrixXd P_trap = P_new.triangularView<Eigen::Upper>();
+  // Transform 'P' into a sparse matrix and extract data as dynamic arrays
+  Eigen::SparseMatrix<double> P_sparse = P_trap.sparseView();
+  double *P_val_ptr = P_sparse.valuePtr();
+  // Convert dynamic 'int' arrays to 'c_int' arrays (OSQP input type)
+  c_int P_elem_N = P_sparse.nonZeros();
+  osqp_update_P(work, P_val_ptr, OSQP_NULL, P_elem_N);
 }
 
 c_int OSQPInterface::updateA(const Eigen::MatrixXd &A_new)
 {
-  // CSC matrices
-  CSC_Matrix A_csc = convEigenMatrixToCSCMatrix(A_new);
-  // Number of elements
-  c_int A_elem_N = A_new.nonZeros();
-  osqp_update_A(work, A_csc.elem_val.data(), OSQP_NULL, A_elem_N);
+  // Transform 'A' into a sparse matrix and extract data as dynamic arrays
+  Eigen::SparseMatrix<double> A_sparse = A_new.sparseView();
+  double *A_val_ptr = A_sparse.valuePtr();
+  // Convert dynamic 'int' arrays to 'c_int' arrays (OSQP input type)
+  c_int A_elem_N = A_sparse.nonZeros();
+
+  osqp_update_A(work, A_val_ptr, OSQP_NULL, A_elem_N);
 }
 
 c_int OSQPInterface::updateQ(const std::vector<double> &q_new)
@@ -175,10 +201,10 @@ std::tuple<std::vector<double>, std::vector<double>, int> OSQPInterface::optimiz
 }
 
 std::tuple<std::vector<double>, std::vector<double>, int> OSQPInterface::optimize(const Eigen::MatrixXd P,
-                                                                             const Eigen::MatrixXd A,
-                                                                             const std::vector<double> q,
-                                                                             const std::vector<double> l,
-                                                                             const std::vector<double> u)
+                                                                                  const Eigen::MatrixXd A,
+                                                                                  const std::vector<double> q,
+                                                                                  const std::vector<double> l,
+                                                                                  const std::vector<double> u)
 {
   initializeProblem(P, A, q, l, u);
 
@@ -193,103 +219,9 @@ inline bool OSQPInterface::isEqual(double x, double y)
   return std::abs(x - y) <= epsilon * std::abs(x);
 }
 
-CSC_Matrix OSQPInterface::convEigenMatrixToCSCMatrix(const Eigen::MatrixXd A)
-{
-  // Input dense matrix dimensions
-  int A_rows = A.rows();
-  int A_cols = A.cols();
-
-  /************************************************************************
-   * Generate 'sparse matrix B' from nonzero elements in 'dense matrix A'
-   ************************************************************************/
-
-  // Generate list of nonzero elements
-  std::vector<Eigen::Triplet<double>> triplet_list;
-  triplet_list.reserve(A.size());
-  for (int i = 0; i < A_rows; i++)
-  {
-    for (int j = 0; j < A_cols; j++)
-    {
-      double A_val = A(i, j);
-      if (!isEqual(A_val, 0.0))
-      {
-        triplet_list.push_back(Eigen::Triplet<double>(i, j, A_val));
-      }
-    }
-  }
-  // Generate 'sparse matrix B' and fill with nonzero elements in list
-  Eigen::SparseMatrix<double> B(A_rows, A_cols);
-  B.setFromTriplets(triplet_list.begin(), triplet_list.end());
-
-  /************************************************************************
-   * Generate 'Compressed Sparse Column (CSC) Matrix A_csc' struct object
-   ************************************************************************/
-
-  // Generate CSC matrix B
-  int B_nonzero_N = B.nonZeros();
-  B.makeCompressed();
-
-  // Extract pointer arrays
-  double *val_ptr = B.valuePtr();
-  int *inn_ptr = B.innerIndexPtr();
-  int *out_ptr = B.outerIndexPtr();
-
-  // Copy values of pointer arrays into vectors in CSC struct
-  // Array lengths:
-  //     elem_val : nonzero element count
-  //     row_idx  : nonzero element count
-  //     col_idx  : input matrix column count + 1
-  CSC_Matrix A_csc;
-  A_csc.elem_val.assign(val_ptr, val_ptr + B_nonzero_N);
-  A_csc.col_idx.assign(out_ptr, out_ptr + A_cols + 1);
-  A_csc.row_idx.assign(inn_ptr, inn_ptr + B_nonzero_N);
-
-  return A_csc;
-}
-
 c_int OSQPInterface::getExitFlag(void)
 {
   return exitflag;
 }
-
-/*
-CSC_Matrix OSQPInterface::transformP(const Eigen::MatrixXd &P, int *nonzeros)
-{
-  // Transform 'P' into an 'upper trapesoidal matrix'
-  Eigen::MatrixXd P_trap = P.triangularView<Eigen::Upper>();
-  *nonzeros = P_trap.nonZeros();
-  // CSC matrices
-  CSC_Matrix P_csc = convEigenMatrixToCSCMatrix(P_trap);
-  return P_csc;
-}
-
-CSC_Matrix OSQPInterface::transformA(const Eigen::MatrixXd &A)
-{
-  CSC_Matrix A_csc = convEigenMatrixToCSCMatrix(A);
-  return A_csc;
-}
-
-double* OSQPInterface::transformQ(const std::vector<double> &q)
-{
-  // Dynamic float arrays
-  std::vector<double> q_tmp(q.begin(), q.end());
-  double* q_dyn = q_tmp.data();
-  return q_dyn;
-}
-
-double* OSQPInterface::transformL(const std::vector<double> &l)
-{
-  std::vector<double> l_tmp(l.begin(), l.end());
-  double* l_dyn = l_tmp.data();
-  return l_dyn;
-}
-
-double* OSQPInterface::transformU(const std::vector<double> &u)
-{
-  std::vector<double> u_tmp(u.begin(), u.end());
-  double* u_dyn = u_tmp.data();
-  return u_dyn;
-}
-*/
 
 } // namespace osqp
