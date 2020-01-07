@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
   osqp::OSQPInterface osqp_interface = osqp::OSQPInterface(P, A, q, l, u, eps_abs);
 
   // Run the optimizer
-  std::tuple<std::vector<double>, std::vector<double>> result = osqp_interface.optimize();
+  std::tuple<std::vector<double>, std::vector<double>, int> result = osqp_interface.optimize();
 
   // Output solution
   std::vector<double> param = std::get<0>(result);
@@ -59,6 +59,8 @@ int main(int argc, char *argv[])
   {
     std::cout << *it << std::endl;
   }
+  int status_polish = std::get<2>(result);
+  std::cout << "status_polish: " << status_polish << " (1: successful, 0: unperformed, -1: unsuccessful)" << std::endl;
 
   return 0;
 }

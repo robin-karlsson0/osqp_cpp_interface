@@ -77,7 +77,7 @@ TEST_F(OSQPInterfaceTest, optimizeInitializedProblem)
   osqp::OSQPInterface osqp_interface = osqp::OSQPInterface(P, A, q, l, u, 1e-6);
 
   // Optimize problem
-  std::tuple<std::vector<double>, std::vector<double>> result = osqp_interface.optimize();
+  std::tuple<std::vector<double>, std::vector<double>, int> result = osqp_interface.optimize();
 
   // Output solution
   std::vector<double> param = std::get<0>(result);
@@ -103,7 +103,7 @@ TEST_F(OSQPInterfaceTest, optimizeUninitializedProblem)
   osqp::OSQPInterface osqp_interface = osqp::OSQPInterface(1e-6);
 
   // Optimize problem
-  std::tuple<std::vector<double>, std::vector<double>> result = osqp_interface.optimize(P, A, q, l, u);
+  std::tuple<std::vector<double>, std::vector<double>, int> result = osqp_interface.optimize(P, A, q, l, u);
 
   // Output solution
   std::vector<double> param = std::get<0>(result);
@@ -129,7 +129,7 @@ TEST_F(OSQPInterfaceTest, optimizeAfterUpdates)
   osqp::OSQPInterface osqp_interface = osqp::OSQPInterface(P, A, q, l, u, 1e-6);
 
   // Optimize problem
-  std::tuple<std::vector<double>, std::vector<double>> result = osqp_interface.optimize();
+  std::tuple<std::vector<double>, std::vector<double>, int> result = osqp_interface.optimize();
 
   // Update P matrix
   osqp_interface.updateP(P);

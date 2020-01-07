@@ -147,7 +147,7 @@ c_int OSQPInterface::updateU(const std::vector<double> &u_new)
   osqp_update_upper_bound(work, u_dyn);
 }
 
-std::tuple<std::vector<double>, std::vector<double>> OSQPInterface::solve()
+std::tuple<std::vector<double>, std::vector<double>, int> OSQPInterface::solve()
 {
   // Solve Problem
   osqp_solve(work);
@@ -159,20 +159,22 @@ std::tuple<std::vector<double>, std::vector<double>> OSQPInterface::solve()
   double *sol_y = work->solution->y;
   std::vector<double> sol_primal(sol_x, sol_x + static_cast<int>(param_n));
   std::vector<double> sol_lagrange_multiplier(sol_y, sol_y + static_cast<int>(param_n));
+  // Solver polish status
+  int status_polish = work->info->status_polish;
   // Result tuple
-  std::tuple<std::vector<double>, std::vector<double>> result = std::make_tuple(sol_primal, sol_lagrange_multiplier);
+  std::tuple<std::vector<double>, std::vector<double>, int> result = std::make_tuple(sol_primal, sol_lagrange_multiplier, status_polish);
 
   return result;
 }
 
-std::tuple<std::vector<double>, std::vector<double>> OSQPInterface::optimize()
+std::tuple<std::vector<double>, std::vector<double>, int> OSQPInterface::optimize()
 {
   // Run the solver on the stored problem representation.
-  std::tuple<std::vector<double>, std::vector<double>> result = solve();
+  std::tuple<std::vector<double>, std::vector<double>, int> result = solve();
   return result;
 }
 
-std::tuple<std::vector<double>, std::vector<double>> OSQPInterface::optimize(const Eigen::MatrixXd P,
+std::tuple<std::vector<double>, std::vector<double>, int> OSQPInterface::optimize(const Eigen::MatrixXd P,
                                                                              const Eigen::MatrixXd A,
                                                                              const std::vector<double> q,
                                                                              const std::vector<double> l,
@@ -181,7 +183,7 @@ std::tuple<std::vector<double>, std::vector<double>> OSQPInterface::optimize(con
   initializeProblem(P, A, q, l, u);
 
   // Run the solver on the stored problem representation.
-  std::tuple<std::vector<double>, std::vector<double>> result = solve();
+  std::tuple<std::vector<double>, std::vector<double>, int> result = solve();
   return result;
 }
 

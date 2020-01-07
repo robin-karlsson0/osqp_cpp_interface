@@ -76,7 +76,7 @@ private:
   bool problem_in_memory = false;
 
   // Runs the solver on the stored problem.
-  std::tuple<std::vector<double>, std::vector<double>> solve();
+  std::tuple<std::vector<double>, std::vector<double>, int> solve();
 
   /*****************************
    * DATA CONVERSION FUNCTIONS
@@ -142,7 +142,7 @@ public:
   //
   // The function returns a tuple containing the solution as two float vectors.
   // The first element of the tuple contains the 'primal' solution. The second element contains the 'lagrange multiplier'
-  // solution.
+  // solution. The third element contains an integer with solver polish status information.
   //
   // How to use:
   //   1. Generate the Eigen matrices P, A and vectors q, l, u according to the problem.
@@ -155,13 +155,13 @@ public:
   //        std::vector<float> param = std::get<0>(result);
   //        double x_0 = param[0];
   //        double x_1 = param[1];
-  std::tuple<std::vector<double>, std::vector<double>> optimize();
+  std::tuple<std::vector<double>, std::vector<double>, int> optimize();
 
   // Solves convex quadratic programs (QPs) using the OSQP solver.
   //
   // The function returns a tuple containing the solution as two float vectors.
   // The first element of the tuple contains the 'primal' solution. The second element contains the 'lagrange multiplier'
-  // solution.
+  // solution. The third element contains an integer with solver polish status information.
   //
   // How to use:
   //   1. Generate the Eigen matrices P, A and vectors q, l, u according to the problem.
@@ -174,7 +174,7 @@ public:
   //        std::vector<float> param = std::get<0>(result);
   //        double x_0 = param[0];
   //        double x_1 = param[1];
-  std::tuple<std::vector<double>, std::vector<double>> optimize(const Eigen::MatrixXd P,
+  std::tuple<std::vector<double>, std::vector<double>, int> optimize(const Eigen::MatrixXd P,
                                                                 const Eigen::MatrixXd A,
                                                                 const std::vector<double> q,
                                                                 const std::vector<double> l,
