@@ -13,6 +13,7 @@ include_directories(
 add_executable(osqp_cpp_interface
     src/main.cpp
     src/osqp_interface.cpp
+    src/csc_matrix_conv.cpp
 )
 
 target_link_libraries(osqp_cpp_interface
@@ -25,7 +26,9 @@ include_directories(${GTEST_INCLUDE_DIRS})
 
 add_executable(runTests
   test/src/test_osqp_interface.cpp
+  test/src/test_csc_matrix_conv.cpp
   src/osqp_interface.cpp
+  src/csc_matrix_conv.cpp
 )
 
 target_link_libraries(runTests
