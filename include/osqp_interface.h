@@ -5,22 +5,10 @@
 #include <vector>
 #include <tuple>
 #include "osqp.h"
+#include "csc_matrix_conv.h"
 
 namespace osqp
 {
-
-// Struct for containing a 'Compressed-Column-Sparse Matrix' object.
-//
-// Elements:
-//   elem_val: Vector of non-zero values. Ex: [4,1,1,2]
-//   row_idx:  Row index corresponding to values. Ex: [0, 1, 0, 1] (Eigen: 'inner')
-//   col_idx:  List of 'val' indices where each column starts. Ex: [0, 2, 4] (Eigen: 'outer')
-struct CSC_Matrix
-{
-  std::vector<double> elem_val;
-  std::vector<c_int> row_idx;
-  std::vector<c_int> col_idx;
-};
 
 /**
   * Implementation of a native C++ interface for the OSQP solver.
